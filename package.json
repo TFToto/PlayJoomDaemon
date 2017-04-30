@@ -1,0 +1,24 @@
+{
+  "name": "PlayJoomDaemon",
+  "version": "0.1.0",
+  "description": "PlayJoomDaemon",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified! Configure in package.json\" && exit 1",
+    "start": "node lib/app.js"
+  },
+  "repository": "",
+  "keywords": [
+    "node.js",
+    "eclipse",
+    "nodeclipse"
+  ],
+  "author": "teglo",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "date-time": "^1.1.0",
+    "express-favicon": "^2.0.0",
+    "lowdb": "^0.16.2"
+  }
+}

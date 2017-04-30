@@ -1,0 +1,42 @@
+body {
+  padding: 50px;
+  font: 14px Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+h5 {
+    font-size: 1.25rem;
+}
+h5, h6 {
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+}
+html body p.subtitle {
+	padding: 5px 0 5px 28px;
+	margin: 10px 0 0 0;
+	color: #FFF;
+	background-color: #550055;
+	font-weight: bold;
+	position: relative;
+	left: -30px;
+	width: 100%;
+}
+div.footer {
+    background-color: #fff;
+    bottom: 0;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+    color: #646464;
+    font: 11px Arial,sans-serif;
+    left: 0;
+    margin: 0;
+    padding: 8px 36px 0 12px;
+    position: fixed;
+    right: 0;
+    text-align: left;
+    text-transform: none;
+    z-index: 99999;
+}
