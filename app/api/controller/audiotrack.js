@@ -9,15 +9,18 @@
 
 var ModelAudiotrack = require('../models/audiotrack');
 var fs = require('fs');
+var moment = require('moment');
+var uaparser = require('ua-parser-js');
 const low = require('lowdb');
 const fileAsync = require('lowdb/lib/storages/file-async');
 
-const db = low('./accessdb.json', {
+const db = low('./var/log/accessdb_' + moment().format('YYYY-MM') + '.json', {
 	  storage: fileAsync
 });
 
-const dateTime = require('date-time');
-console.log(dateTime());
+var log4js = require('log4js');
+log4js.configure('./var/etc/log.conf.json');
+var log = log4js.getLogger("startup");
 
 //Init access db
 db.defaults({ audiotracks: [] }).write();
@@ -30,12 +33,16 @@ function getAudiotrackItems(req,res) {
 		fs.access(file, fs.R_OK, function (err) {
 			if(!err) {
 				
+				var ua = uaparser(req.headers['user-agent']);
 				console.log('Access to',file);
-				//db.set('audiotracks',[{id: + row[0].id}]).write();
+
+				//write access log
 				db.get('audiotracks').push([{
-					accessdate: + dateTime(),
-					trackid: + row[0].id,
-					file: + file
+					access_datetime: moment.utc().format(),
+					trackid: row[0].id,
+					file: file,
+					client_ip: req.connection.remoteAddress,
+					client: uaparser(req.headers['user-agent'])
 				}]).last().write();
 
 				var stat = fs.statSync(file);
@@ -50,7 +57,7 @@ function getAudiotrackItems(req,res) {
 					var partial_end = parts[1];
 
 			        if ((isNaN(partial_start) && partial_start.length > 1) || (isNaN(partial_end) && partial_end.length > 1)) {
-			            return res.sendStatus(500); //ERR_INCOMPLETE_CHUNKED_ENCODING
+			            return res.sendStatus(500);
 			        }
 
 			        var start = parseInt(partial_start, 10);
@@ -73,19 +80,9 @@ function getAudiotrackItems(req,res) {
 			    }
 				
 				readStream.pipe(res);
-				
-				
-				//Frist version
-				/*console.log('Access to',file);
-				var stat = fs.statSync(file);
 
-                res.writeHead(200, {
-                    'Content-Type': 'audio/mpeg',
-                    'Content-Length': stat.size
-                });*/
-
-                //fs.createReadStream(file).pipe(res);
 			} else {
+				log.error('File', file, 'not readable.');
 				console.log('File', file, 'not readable.');
 				//res.send('[{response:"File is not readable"}]');
 				var json_res = JSON.stringify({
@@ -95,9 +92,8 @@ function getAudiotrackItems(req,res) {
 				res.send(json_res);
 			}
 		});
-		
-		//res.send(row);
 	}, function failure(err) {
+		log.error(err);
 		res.send(err);
 	})
 }

@@ -8,7 +8,7 @@
  */
 
 module.exports = function(app) {
-	//app.get('/api', require('./app/api/controller/controller.js').fetchAll);
+	app.get('/',require('./app/welcome/controller/').indexAction);
 	app.get('/api/audiotrack',require('./app/api/controller/audiotrack.js').getAudiotrackItems);
 };
 
