@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified! Configure in package.json\" && exit 1",
-    "start": "node lib/app.js"
+    "start": "node server.js"
   },
   "repository": "",
   "keywords": [
@@ -17,8 +17,9 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-    "express-favicon": "^2.0.0",
-    "lowdb": "^0.16.2",
-    "moment": "^2.18.1"
+  "express-favicon": "^2.0.0",
+  "lowdb": "^0.16.2",
+  "moment": "^2.18.1",
+  "swagger-ui-express": "^1.0.7"
   }
 }
