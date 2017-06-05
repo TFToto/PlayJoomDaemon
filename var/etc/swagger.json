@@ -97,7 +97,16 @@
             }
           },
           "400": {
-            "description": "Invalid username/password"
+            "description": "Error: JSON is not valid"
+          },
+          "401": {
+            "description": "Authentication failed!"
+          },
+          "403": {
+            "description": "Authentication failed! User does not exists."
+          },
+          "500": {
+            "description": "Internal Error"
           }
         }
       }
@@ -130,9 +139,6 @@
             "schema": {
               "$ref": "#/definitions/ResUserToken"
             }
-          },
-          "400": {
-            "description": "Invalid username/password"
           }
         }
       }
@@ -162,7 +168,8 @@
           "type": "string"
         },
         "password": {
-          "type": "string"
+          "type": "string",
+          "format": "password"
         }
       }
     },
@@ -188,14 +195,14 @@
         },
         "add_datetime": {
           "type": "string",
-          "format": "datetime"
+          "format": "date-time"
         },
         "add_by": {
           "type": "string"
         },
         "mod_datetime": {
           "type": "string",
-          "format": "datetime"
+          "format": "date-time"
         },
         "mod_by": {
           "type": "string"
@@ -241,7 +248,8 @@
           "format": "int64"
         },
         "length": {
-          "type": "double"
+          "type": "number",
+          "format": "double"
         },
         "catid": {
           "type": "integer",
@@ -264,13 +272,9 @@
         },
         "expires": {
           "type": "string",
-          "format": "datetime"
+          "format": "date-time"
         }
       }
     }
-  },
-  "externalDocs": {
-    "description": "Find out more about Swagger",
-    "url": "http://swagger.io"
   }
 }

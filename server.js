@@ -6,9 +6,10 @@
  * @link http://www.playjoom.org
  * @license http://www.playjoom.org/en/about/licenses/gnu-general-public-license.html
  */
-var express = require('express');
-var router  = require('./router');
-var path    = require('path');
+var express    = require('express');
+var router     = require('./router');
+var path       = require('path');
+var bodyParser = require("body-parser");
 
 //Setup server config
 var pjdconfig = require('pjd-config');
@@ -17,6 +18,8 @@ var config = new pjdconfig('./var/etc/server.conf');
 var app = express();
 
 app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 router(app);
 
@@ -42,6 +45,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 if(config.get('app.listen.port') === undefined) {
 	config.set('app.listen.port', 8091);
 }
+
+//var bcrypt = require('bcrypt');
+//const saltRounds = 10;
+//const myPlaintextPassword = 'julitonet';
+
+//var salt = bcrypt.genSaltSync(saltRounds);
+//var hash = bcrypt.hashSync(myPlaintextPassword, salt);
+
+//console.log(hash);
+
+//var newhash = '$2y$10$pddL4PJdkvdrmq9CexJ2M.MmfC747DCdIH5pfIGnXX7JrYBiPl3bW';
+//console.log('new hash:',newhash.replace('$2a$', '$2y$'));
+
+//var check = bcrypt.compareSync(myPlaintextPassword, newhash.replace('$2y$', '$2a$'));
+
+//if (check) {
+	//console.log('password is true');
+//} else {
+	//console.log('password is wrong');
+//}
 
 app.listen(config.get('app.listen.port'), function (err) {
 	
