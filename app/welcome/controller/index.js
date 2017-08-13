@@ -13,7 +13,7 @@ module.exports = {
 function indexAction (req, res) {
 	var data = {
 		title: 'PlayJoomDaemon',
-		subtitle: 'The data daemon for the PlayJoom streaming server',
+		subtitle: 'The data daemon for PlayJoom',
 		footertitle: 'Made by teglo',
 		footertxt: 'Copyright © 2017 All Rights Reserved. PlayJoom is Free Software released under the GNU General Public License.'
 	};

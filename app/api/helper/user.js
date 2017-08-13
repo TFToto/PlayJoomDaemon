@@ -11,6 +11,8 @@ var
 	config      = new pjdconfig('./var/etc/server.conf'),
 	HelperUtils = require('../helper/utils'),
 	log         = HelperUtils.logger('HelperUser');
+	jwt         = require('jsonwebtoken');
+	ModelUser   = require('../models/user');
 
 function checkPass(pass_input, db_hash) {
 	
@@ -104,9 +106,11 @@ function checkPassword(req,row) {
 	
 	var bcrypt = require('bcrypt');
 	
+	console.log(row);
+	
 	//identification hash for Joomla'$2y$'
 	//identification hash for node.js '$2a$'
-	var passcheck = bcrypt.compareSync(req.body.password, row[0].password.replace('$2y$', '$2a$'));
+	var passcheck = bcrypt.compareSync(req.body.password, row.password.replace('$2y$', '$2a$'));
 
 	if(passcheck) {
     	return true;
@@ -122,17 +126,58 @@ function checkAuthorization(req) {
 	
 	var LMDBObj = HelperLmdb.getLMDBConnection();
 	var dbi = HelperLmdb.openLMDB(LMDBObj,'token');
-	var txn = LMDBObj.beginTxn();
+	var moment = require('moment');
 	
-	var value = JSON.parse(txn.getString(dbi, req.headers.authorization));
+	// Decode token for request herader
+	if(req.headers.authorization != '' && config.get('security.jwt_privatekey') != '') {
+		
+		try {
+			var token_content = jwt.verify(req.headers.authorization, config.get('security.jwt_privatekey'));
+			var txn = LMDBObj.beginTxn();
+			var lmdb_values = JSON.parse(txn.getString(dbi, req.headers.authorization));
+			txn.commit();
+		} catch(err) {
+			log.error(err);
+			console.log(err);
+			return null;
+		}
+	} else {
+		return false;
+	}
 
-	txn.commit();
+	if (lmdb_values) {
 
-	if (value) {
-		return value;
+		//Write user data with new token as id into lmdb
+		if(moment().format('X') < token_content.exp) {
+			
+			if(token_content.id == lmdb_values.id) {
+				
+				//txn.del(dbi,req.headers.authorization);
+				
+				var new_token = ModelUser.setUserToken(lmdb_values);
+				
+				var txn = LMDBObj.beginTxn();
+				var new_lmdb_values = JSON.parse(txn.getString(dbi, new_token));
+				txn.commit();
+				
+				return new_lmdb_values;
+			} else {
+				console.log('user id of lmdb does not matched with user id in requested token');
+				log.warn('user id of lmdb does not matched with user id in requested token');
+				
+				return null;
+			}
+		} else {
+			console.log('Token is exired');
+			log.warn('Token is exired');
+			
+			return null;
+		}
 	} else {
 		console.log('Invalid token');
-		log.warn('Invalid token');
+		log.warn('Invalid token',req.headers.authorization);
+		
+		txn.commit();
 		return null;
 	}
 }

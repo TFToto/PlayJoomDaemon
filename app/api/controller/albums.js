@@ -27,16 +27,15 @@ db.defaults({ albums: [] }).write();
 function getAlbums(req,res) {
 	
 	var ModelAlbums = require('../models/albums');
+	//var ModelUser = require('../models/user');
 	var ViewAlbums = require('../views/albums');
 	var HelperUser = require('../helper/user');
 
 	var checkAuth = HelperUser.checkAuthorization(req);
 	
 	if(checkAuth != null || checkAuth != undefined) {
-		
-		console.log(checkAuth);
-		
-		ModelAlbums.fetchItems(req).then(function success(rows) {
+
+		ModelAlbums.fetchItems(req, checkAuth.id).then(function success(rows) {
 
 	    	var response_content = {
 				'message': JSON.stringify(rows),
@@ -45,7 +44,7 @@ function getAlbums(req,res) {
 			}
 	    	
 	    	//Output the result of the request
-			ViewAlbums.output(res, response_content);
+			ViewAlbums.output(res, checkAuth.token, response_content);
 
 		}, function failure(err) {
 			log.error(err);

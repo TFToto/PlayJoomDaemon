@@ -6,32 +6,31 @@
  * @link http://www.playjoom.org
  * @license http://www.playjoom.org/en/about/licenses/gnu-general-public-license.html
  */
+
+var HelperMysql = require('../helper/mysql'),
+	HelperLmdb  = require('../helper/lmdb'),
+	HelperUtils = require('../helper/utils');
+
 var util = require('util'),
 	pjdconfig = require('pjd-config'),
 	config = new pjdconfig('./var/etc/server.conf'),
-	HelperUtils = require('../helper/utils'),
 	log = HelperUtils.logger('ModelUser');
-
-var HelperLmdb = require('../helper/lmdb');
 
 function fetchUser(request) {
 	
-	var HelperMysql = require('../helper/mysql');
-	
 	var	request_user = request.body.username;
 		request_pass = request.body.password;
-		
-	var dbConnection = HelperMysql.getDBConnection();
 	
 	return new Promise(function (resolve, reject) {
 		
+		var dbConnection = HelperMysql.getDBConnection();		
 		dbConnection.connect();
 		
 		console.log('POST request for user', request_user);
 		db_query = util.format(
-			'SELECT * FROM `gtq2l_users` where `username` = %s AND `block` != 1', connection.escape(request_user));
+			'SELECT * FROM `#__users` where `username` = %s AND `block` != 1', connection.escape(request_user));
 		
-		dbConnection.query(db_query, function(err, rows, fields) {
+		dbConnection.query(db_query.replace(/#__/g,config.get('db.tableprefix')), function(err, rows, fields) {
 
 			if (rows.length != 1) {
 				reject('User does not exists.');
@@ -41,7 +40,13 @@ function fetchUser(request) {
 				console.log('db errors:',err);
 				reject(err);
 			} else {
-				resolve(rows);
+				resolve({
+					id:rows[0].id,
+					username:rows[0].username,
+					password:rows[0].password,
+					name:rows[0].name,
+					email:rows[0].email
+				});
 			}
 		});
 		
@@ -57,44 +62,33 @@ function fetchUser(request) {
  */
 function setUserToken(user_datas) {
 	
-	var moment = require('moment');
+	//var moment  = require('moment');
+	var jwt     = require('jsonwebtoken');
 	var LMDBObj = HelperLmdb.getLMDBConnection();
-	var dbi = HelperLmdb.openLMDB(LMDBObj,'token');
+	var dbi     = HelperLmdb.openLMDB(LMDBObj,'token');
+
 	// Create transaction
 	var txn = LMDBObj.beginTxn();
-	var uuid = require('uuid').v4();
+	//var uuid = require('uuid').v4();
+	
+	var token = jwt.sign({
+		  id: user_datas.id
+		}, config.get('security.jwt_privatekey'),{ expiresIn: '24h' });
 	
 	var json_data = JSON.stringify({
-		id: user_datas[0].id,
-		username: user_datas[0].username,
-		realname: user_datas[0].name,
-		email: user_datas[0].email,
-		expired: moment().add(config.get('user.expired_time'), config.get('user.expired_input'))
+		id: user_datas.id,
+		username: user_datas.username,
+		realname: user_datas.name,
+		email: user_datas.email,
+		token: token
+		//expired: moment().add(config.get('user.expired_time'), config.get('user.expired_input'))
 	});
 
-	//Write the user datas into LMDB 
-	txn.putString(dbi, uuid, json_data);
+	//Write the user datas into LMDB
+	txn.putString(dbi, token, json_data);
 	txn.commit();
 	
-	return uuid;
-}
-
-function getExpired(token) {
-
-	var LMDBObj = HelperLmdb.getLMDBConnection();
-	var dbi = HelperLmdb.openLMDB(LMDBObj,'token');
-	var txn = LMDBObj.beginTxn();	
-	var value = JSON.parse(txn.getString(dbi, token));
-
-	txn.commit();
-
-	if (value) {
-		return value.expired;
-	} else {
-		console.log('Missing expired date for token');
-		log.warn('Missing expired date for token');
-		return null;
-	}
+	return token;
 }
 
 function setUnsuccessfulAuth(req, value) {
@@ -121,11 +115,43 @@ function getUnsuccessfulAuth(req) {
 	
 }
 
+function getGroupsByUser(user_id) {
+	
+	return new Promise(function (resolve, reject) {
+
+		var dbConnection = HelperMysql.getDBConnection();
+
+			dbConnection.connect();
+
+			db_query = util.format(
+				'SELECT b.id FROM #__user_usergroup_map map',
+				'LEFT JOIN #__usergroups a ON',
+				'a.id = map.group_id',
+				'LEFT JOIN #__usergroups AS b ON', 
+				'b.lft <= a.lft AND b.rgt >= a.rgt',
+				'where map.user_id = ' + user_id
+			);
+
+			//Placeholder for the table prefix is #__
+			dbConnection.query(db_query.replace(/#__/g,config.get('db.tableprefix')), function(err, rows, fields) {
+
+				if (err) {
+					console.log('query error:',err);
+					reject(err);
+				} else {
+					resolve(rows);
+				}
+			});
+			dbConnection.end();
+	});
+
+}
+
 module.exports = {
 	fetchUser: fetchUser,
 	setUserToken: setUserToken,
-	getExpired: getExpired,
 	setUnsuccessfulAuth: setUnsuccessfulAuth,
-	getUnsuccessfulAuth: getUnsuccessfulAuth
+	getUnsuccessfulAuth: getUnsuccessfulAuth,
+	getGroupsByUser:getGroupsByUser
 };
 

@@ -10,8 +10,10 @@
 var ModelUser = require('../models/user');
 var ViewUser = require('../views/user');
 var HelperUser = require('../helper/user');
-var fs = require('fs');
-var moment = require('moment');
+
+//Import 3rd party components
+var fs       = require('fs');
+var moment   = require('moment');
 var uaparser = require('ua-parser-js');
 
 var pjdconfig = require('pjd-config'),
@@ -65,12 +67,11 @@ function getToken(req,res) {
 				if (ModelUser.getUnsuccessfulAuth(req) != 0) {
 					ModelUser.setUnsuccessfulAuth(req, 0);
 				}
-				var token_str = ModelUser.setUserToken(row);
+				var token_str = ModelUser.setUserToken(row,req);
 				
 				var json_res = JSON.stringify({
 					response: "Authentication successful",
-					token: token_str,
-					expired: ModelUser.getExpired(token_str)
+					token: token_str
 				});
 		    	var response_content = {
 					'message':json_res,

@@ -11,11 +11,12 @@ var pjdconfig = require('pjd-config'),
 	config = new pjdconfig('./var/etc/server.conf')
 	util = require('util');
 
-var HelperMysql = require('../helper/mysql');
+var HelperMysql     = require('../helper/mysql');
+var HelperComparams = require('../helper/comparams');
+var ModelUser       = require('../models/user');
 
-
-function fetchItems(request) {
-		
+function fetchItems(request,user_id) {
+	
 	var dbConnection = HelperMysql.getDBConnection();
 	var url_params = request.query,
 		request_method = request.method;
@@ -23,12 +24,13 @@ function fetchItems(request) {
 	return new Promise(function (resolve, reject) {
 		
 		dbConnection.connect();
+		
 		db_query = util.format(
 			'SELECT a.artist, a.album, a.year, a.catid, a.access, a.pathatlocal, c.title AS category_title, cb.id AS coverid, cb.mime',
-			'FROM `#__jpaudiotracks` a',
+			'FROM `#__audiotracks` a',
 			'LEFT JOIN `#__categories` c',
 			'ON c.id = a.catid',
-			'LEFT JOIN `#__jpcoverblobs` cb',
+			'LEFT JOIN `#__coverblobs` cb',
 			'ON cb.id = a.coverid',
 			'GROUP BY a.album, a.pathatlocal, a.artist, a.year, a.catid, a.access, c.title, cb.id, cb.mime',
 			'LIMIT 3'

@@ -9,10 +9,11 @@
 
 var HelperView = require('../helper/view');
 
-function output(res, content) {
+function output(res, token, content) {
 
 	res.status(content.code);
 	res.header(HelperView.createHeaderType(content.type));
+	res.header({'authorization':token});
 	res.send(content.message);
 
 }
