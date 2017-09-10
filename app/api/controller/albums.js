@@ -33,7 +33,7 @@ function getAlbums(req,res) {
 
 	var checkAuth = HelperUser.checkAuthorization(req);
 	
-	if(checkAuth != null || checkAuth != undefined) {
+	if(checkAuth != null && checkAuth != undefined) {
 
 		ModelAlbums.fetchItems(req, checkAuth.id).then(function success(rows) {
 
@@ -63,7 +63,7 @@ function getAlbums(req,res) {
 		}
     	
     	//Output the result of the request
-    	ViewAlbums.output(res, response_content);
+    	ViewAlbums.output(res, null, response_content);
 	}	
 }
 

@@ -21,6 +21,14 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+//For Cross-Origin request blocked requests
+app.use(function(req, res, next) {
+	res.header('Access-Control-Allow-Origin',"*");
+	res.header('Access-Control-Allow-Methods','GET,PUT,POST,DELETE,PATCH,OPTIONS');
+	res.header('Access-Control-Allow-Headers','Authorization, Content-Type, Content-Range, Content-Disposition, Content-Description');
+	next();
+});
+
 router(app);
 
 //Setup logger

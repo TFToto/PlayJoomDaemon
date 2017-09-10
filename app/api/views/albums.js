@@ -13,7 +13,8 @@ function output(res, token, content) {
 
 	res.status(content.code);
 	res.header(HelperView.createHeaderType(content.type));
-	res.header({'authorization':token});
+	res.header({'Access-Control-Expose-Headers':'Authorization'});
+	res.header({'Authorization':token});
 	res.send(content.message);
 
 }

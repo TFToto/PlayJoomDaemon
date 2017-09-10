@@ -1,5 +1,5 @@
 /**
- * @package     PlayJoomDaemon.Models
+ * @package     PlayJoomDaemon.Helpers
  * @subpackage  API
  *
  * @copyright Copyright (C) 2017 by teglo. All rights reserved.
@@ -106,8 +106,6 @@ function checkPassword(req,row) {
 	
 	var bcrypt = require('bcrypt');
 	
-	console.log(row);
-	
 	//identification hash for Joomla'$2y$'
 	//identification hash for node.js '$2a$'
 	var passcheck = bcrypt.compareSync(req.body.password, row.password.replace('$2y$', '$2a$'));
@@ -130,15 +128,15 @@ function checkAuthorization(req) {
 	
 	// Decode token for request herader
 	if(req.headers.authorization != '' && config.get('security.jwt_privatekey') != '') {
-		
+
 		try {
 			var token_content = jwt.verify(req.headers.authorization, config.get('security.jwt_privatekey'));
 			var txn = LMDBObj.beginTxn();
 			var lmdb_values = JSON.parse(txn.getString(dbi, req.headers.authorization));
 			txn.commit();
 		} catch(err) {
-			log.error(err);
-			console.log(err);
+			log.error('Error! checkAuthorization',err);
+			console.log('Error! checkAuthorization',err);
 			return null;
 		}
 	} else {
@@ -152,12 +150,12 @@ function checkAuthorization(req) {
 			
 			if(token_content.id == lmdb_values.id) {
 				
-				//txn.del(dbi,req.headers.authorization);
-				
 				var new_token = ModelUser.setUserToken(lmdb_values);
 				
 				var txn = LMDBObj.beginTxn();
 				var new_lmdb_values = JSON.parse(txn.getString(dbi, new_token));
+
+//TODO just for development				txn.del(dbi,req.headers.authorization);
 				txn.commit();
 				
 				return new_lmdb_values;
@@ -176,8 +174,7 @@ function checkAuthorization(req) {
 	} else {
 		console.log('Invalid token');
 		log.warn('Invalid token',req.headers.authorization);
-		
-		txn.commit();
+
 		return null;
 	}
 }

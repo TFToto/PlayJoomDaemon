@@ -32,6 +32,8 @@ function getToken(req,res) {
 
 	var response_content = null;
 	
+	console.log('Request token for user',req.body.username);
+	
 	if(ModelUser.getUnsuccessfulAuth(req) > config.get('security.maxFailedAuths')) {
 		var json_res = JSON.stringify({
 			response:"Access denied!"
@@ -54,9 +56,7 @@ function getToken(req,res) {
 		response_content = HelperUser.checkParams(req);
 	}
 	
-	if(!response_content){
-		
-		console.log('check for user pass');
+	if(!response_content) {
 		
 		ModelUser.fetchUser(req,res).then(function success(row) {
 

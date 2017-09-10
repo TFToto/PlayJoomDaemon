@@ -8,7 +8,6 @@
  */
 var 
 	mysql = require('mysql'),
-	dbcredits = require('../../etc/db'),
 	pjdconfig = require('pjd-config'),
 	config = new pjdconfig('./var/etc/server.conf')
 	util = require('util');

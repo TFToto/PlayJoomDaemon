@@ -12,6 +12,8 @@ module.exports = function(app) {
 	app.get('/api/audiotrack',require('./app/api/controller/audiotrack.js').getAudiotrackItems);
 	app.get('/api/albums',require('./app/api/controller/albums.js').getAlbums);
 	app.post('/api/user/getToken',require('./app/api/controller/user.js').getToken);
+	app.get('/api/cover/gallery',require('./app/api/controller/cover.js').getCoverGallery);
+	app.get('/api/cover/single',require('./app/api/controller/cover.js').getCoverSingle);
 	
 	//setup API documentation
 	const swaggerUi = require('swagger-ui-express');

@@ -25,8 +25,7 @@ function fetchUser(request) {
 		
 		var dbConnection = HelperMysql.getDBConnection();		
 		dbConnection.connect();
-		
-		console.log('POST request for user', request_user);
+
 		db_query = util.format(
 			'SELECT * FROM `#__users` where `username` = %s AND `block` != 1', connection.escape(request_user));
 		
@@ -71,9 +70,31 @@ function setUserToken(user_datas) {
 	var txn = LMDBObj.beginTxn();
 	//var uuid = require('uuid').v4();
 	
+	var jwt_privatekey = config.get('security.jwt_privatekey');
+	
+	if (jwt_privatekey == '' || jwt_privatekey == undefined) {
+		
+		log.warn('Missing private key in server config. Generate newone.');
+		
+		var generatePassword = require('password-generator');
+		config.set('security.jwt_privatekey',generatePassword(30, false, /[\w\d\?\-\!\§\$\%\&\(\)\=\@\{\}]/));
+		
+		var jwt_privatekey = config.get('security.jwt_privatekey');
+	}
+	
+	var jwt_expiresin = config.get('security.jwt_expiresin');
+	
+	if (jwt_expiresin == '' || jwt_expiresin == undefined) {
+		
+		log.warn('Missing jwt_expiresin in server config. Generate newone.');
+		config.set('security.jwt_expiresin','24h');
+		
+		var jwt_expiresin = config.get('security.jwt_expiresin');
+	}
+
 	var token = jwt.sign({
 		  id: user_datas.id
-		}, config.get('security.jwt_privatekey'),{ expiresIn: '24h' });
+		}, jwt_privatekey,{expiresIn: jwt_expiresin});
 	
 	var json_data = JSON.stringify({
 		id: user_datas.id,
