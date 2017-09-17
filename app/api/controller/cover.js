@@ -13,6 +13,7 @@ var uaparser = require('ua-parser-js');
 const low = require('lowdb');
 const fileAsync = require('lowdb/lib/storages/file-async');
 var sharp = require('sharp');
+var imgsize = require('image-size');
 
 var pjdconfig = require('pjd-config');
 var config = new pjdconfig('./var/etc/server.conf');
@@ -69,9 +70,9 @@ function getCoverGallery(req,res) {
 					var range = req.headers.range;
 					var readStream;
 					
-					res.header({
-			            'Content-Type': row.mime,
-			        });
+//					res.header({
+//			            'Content-Type': row.mime,
+//			        });
 					
 					sharp(row.data)
 						.resize(config.get('cover.gallery_width_size'))
@@ -80,11 +81,31 @@ function getCoverGallery(req,res) {
 						.toFormat(sharp.format.webp)
 						.toBuffer(function(err, outputBuffer) {
 					
+							
 							if (err) {
 								throw err;
 							}
+							
+							var new_img_dimensions = imgsize(outputBuffer);
+							var json_res = JSON.stringify({
+								mime: row.mime,
+								width: new_img_dimensions.width,
+								height: new_img_dimensions.height,
+								imagedata: Buffer.from(outputBuffer).toString('base64')
+							});
+							
+							var response_content = {
+								'message': json_res,
+								'type':'json',
+								'code':200
+							}
+							
+							//Output the result of the request
+							ViewCover.output(res, checkAuth.token, response_content);
 
-							res.send(outputBuffer);
+//							res.send(
+//								Buffer.from(outputBuffer).toString('base64')
+//							);
 					});
 				}
 	
